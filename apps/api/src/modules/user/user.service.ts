@@ -9,8 +9,9 @@ export const UserService = {
         name: data.name,
         email: data.email,
         password: data.password,
-        callbackURL: "/chat",
+        //callbackURL: "/chat",
       },
+      returnHeaders: true,
     });
     return user;
   },
@@ -20,9 +21,9 @@ export const UserService = {
       body: {
         email: data.email,
         password: data.password,
-        callbackURL: "/chat",
+        //callbackURL: "/chat",
       },
-      //   headers: await Headers()
+      returnHeaders: true
     });
     return user;
   },

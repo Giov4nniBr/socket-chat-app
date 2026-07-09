@@ -3,6 +3,7 @@ import fastifyCors from "@fastify/cors";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.js";
 import { UserRoutes } from "./modules/user/user.route.js";
+import { FriendRoutes } from "./modules/friend/friend.route.js";
 
 app.register(fastifyCors, {
   origin: process.env.CLIENT_URL || "http://localhost:4321",
@@ -45,6 +46,7 @@ app.route({
 });
 
 app.register(UserRoutes)
+app.register(FriendRoutes)
 
 const port = Number(process.env.PORT) || 3333;
 
