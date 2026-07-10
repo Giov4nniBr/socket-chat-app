@@ -36,5 +36,19 @@ services:
         condition: service_healthy
     command: sh -c "npx prisma migrate deploy && node dist/server.js"
 
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: chat-web
+    restart: unless-stopped
+    ports:
+      - "4321:4321" # Porta padrão do Astro, definida no seu CLIENT_URL
+    environment:
+      # Adicione aqui variáveis de ambiente que o Astro possa precisar no Docker 
+      PUBLIC_API_URL: http://localhost:3333
+    depends_on:
+      - api
+
 volumes:
   postgres_data:
