@@ -1,32 +1,27 @@
 import { useCallback, useEffect, useState } from "react";
+import { listFriends, listPendingRequests } from "@/lib/api/friends";
 import { socket } from "@/lib/socket";
-import { api, type FriendUser, type FriendRequestItem } from "@/lib/api";
-import { FriendList } from "./chat/FriendList";
 import { FriendRequests } from "./chat/FriendRequests";
-import { AddFriend } from "./chat/AddFriend";
 import { ChatWindow } from "./chat/ChatWindow";
+import { FriendList } from "./chat/FriendList";
+import { AddFriend } from "./chat/AddFriend";
+import type { FriendRequestDTO } from "@/lib/chat.schema";
+import type { UserDTO } from "@/lib/chat.schema";
 
-type CurrentUser = {
-  id: string;
-  name: string;
-  email: string;
-};
 
-export function ChatApp({ user }: { user: CurrentUser }) {
-  const [friends, setFriends] = useState<FriendUser[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<
-    FriendRequestItem[]
-  >([]);
-  const [selectedFriend, setSelectedFriend] = useState<FriendUser | null>(
-    null,
+export function ChatApp({ user }: { user: UserDTO }) {
+  const [friends, setFriends] = useState<UserDTO[]>([]);
+  const [pendingRequests, setPendingRequests] = useState<FriendRequestDTO[]>(
+    [],
   );
+  const [selectedFriend, setSelectedFriend] = useState<UserDTO | null>(null);
 
   const loadFriends = useCallback(() => {
-    api.listFriends().then(setFriends).catch(console.error);
+    listFriends().then(setFriends).catch(console.error);
   }, []);
 
   const loadPendingRequests = useCallback(() => {
-    api.listPendingRequests().then(setPendingRequests).catch(console.error);
+    listPendingRequests().then(setPendingRequests).catch(console.error);
   }, []);
 
   // conecta o socket só depois que a sessão já foi confirmada (essa página

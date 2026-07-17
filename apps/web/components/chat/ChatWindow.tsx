@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { socket } from "@/lib/socket";
-import { api, type FriendUser, type Message } from "@/lib/api";
+import type { UserDTO } from "@/lib/chat.schema";
+import type { MessageDTO } from "@/lib/chat.schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -12,15 +13,16 @@ import {
 } from "@/components/ui/message-scroller";
 import { Message as MessageRow } from "@/components/ui/message";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
+import { getMessageHistory } from "@/lib/api/messages";
 
 export function ChatWindow({
   currentUserId,
   friend,
 }: {
   currentUserId: string;
-  friend: FriendUser;
+  friend: UserDTO;
 }) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<MessageDTO[]>([]);
   const [content, setContent] = useState("");
   const [loadingHistory, setLoadingHistory] = useState(true);
   const friendIdRef = useRef(friend.id);
@@ -31,16 +33,16 @@ export function ChatWindow({
     let cancelled = false;
     setLoadingHistory(true);
 
-    api
-      .getMessageHistory(friend.id)
+    getMessageHistory(friend.id)
       .then((history) => {
         if (!cancelled) {
-          // backend retorna mais recentes primeiro; a UI quer ordem cronológica
           setMessages([...history].reverse());
         }
       })
       .finally(() => {
-        if (!cancelled) setLoadingHistory(false);
+        if (!cancelled) {
+          setLoadingHistory(false);
+        }
       });
 
     return () => {
@@ -50,7 +52,7 @@ export function ChatWindow({
 
   // escuta mensagens em tempo real (uma vez só, não por amigo)
   useEffect(() => {
-    function handleReceive(message: Message) {
+    function handleReceive(message: MessageDTO) {
       // só adiciona se a mensagem pertence à conversa aberta no momento
       const isCurrentConversation =
         message.senderId === friendIdRef.current ||

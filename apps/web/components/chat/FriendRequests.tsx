@@ -1,22 +1,23 @@
 import { Button } from "@/components/ui/button";
-import { api, type FriendRequestItem } from "@/lib/api";
+import { acceptFriendRequest, rejectFriendRequest } from "@/lib/api/friends";
+import type { FriendRequestDTO } from "@/lib/chat.schema";
 
 export function FriendRequests({
   requests,
   onResolved,
 }: {
-  requests: FriendRequestItem[];
+  requests: FriendRequestDTO[];
   onResolved: () => void;
 }) {
   if (requests.length === 0) return null;
 
   const handleAccept = async (id: string) => {
-    await api.acceptFriendRequest(id);
+    await acceptFriendRequest(id);
     onResolved();
   };
 
   const handleReject = async (id: string) => {
-    await api.rejectFriendRequest(id);
+    await rejectFriendRequest(id);
     onResolved();
   };
 
@@ -27,10 +28,7 @@ export function FriendRequests({
       </p>
       <ul className="flex flex-col gap-2">
         {requests.map((req) => (
-          <li
-            key={req.id}
-            className="flex items-center justify-between gap-2"
-          >
+          <li key={req.id} className="flex items-center justify-between gap-2">
             <span className="text-sm truncate">{req.sender.name}</span>
             <div className="flex gap-1 shrink-0">
               <Button size="sm" onClick={() => handleAccept(req.id)}>

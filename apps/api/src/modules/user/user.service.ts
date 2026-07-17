@@ -9,7 +9,7 @@ export const UserService = {
         name: data.name,
         email: data.email,
         password: data.password,
-        //callbackURL: "/chat",
+        callbackURL: "/chat",
       },
       returnHeaders: true,
     });
@@ -21,7 +21,7 @@ export const UserService = {
       body: {
         email: data.email,
         password: data.password,
-        //callbackURL: "/chat",
+        callbackURL: "/chat",
       },
       returnHeaders: true
     });

@@ -2,13 +2,14 @@ import { app } from "./app.js";
 import fastifyCors from "@fastify/cors";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "./lib/auth.js";
-import { UserRoutes } from "./modules/user/user.route.js";
-import { FriendRoutes } from "./modules/friend/friend.route.js";
+import { UserRoutes } from "./modules/user/user.routes.js";
+import { FriendRoutes } from "./modules/friend/friend.routes.js";
 import { setupSocket } from "./plugins/socket.js";
 import { MessageRoutes } from "./modules/message/message.routes.js";
 
+
 app.register(fastifyCors, {
-  origin: process.env.CLIENT_URL || "http://localhost:4321",
+  origin: process.env.CLIENT_URL!,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
   credentials: true,
@@ -53,7 +54,7 @@ app.register(MessageRoutes)
 
 setupSocket(app);
 
-const port = Number(process.env.PORT) || 3333;
+const port = Number(process.env.PORT!)
 
 app.listen({ port }, (err) => {
   if (err) {

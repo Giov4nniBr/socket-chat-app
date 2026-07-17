@@ -1,22 +1,25 @@
 ---
-// export const prerender = false;
-// const API_URL = import.meta.env.PUBLIC_API_URL;
-// import { authClient } from "@/lib/auth.client";
-
-// const data = await authClient.getSession();
-
-// if (!data) {
-//   Astro.redirect("/login");
-//   throw new Error("sessao invalida");
-// }
-
-// const cookies = Astro.request.headers.get("cookie");
-
-// const session = fetch(`${API_URL}/api/auth/get-session`, {
-//   headers: {},
-// });
+export const prerender = false;
+import { authClient } from "@/lib/auth.client";
 import { ChatApp } from "@/components/ChatApp";
 import "@/src/styles/global.css";
+
+const { data: session } = await authClient.getSession({
+  fetchOptions: {
+    headers: Astro.request.headers
+  }
+});
+
+if (!session) {
+  return Astro.redirect("/login");
+}
+
+const user = {
+  id: session.user.id,
+  name: session.user.name,
+  email: session.user.email,
+};
+
 ---
 
 <html lang="en">
@@ -29,11 +32,7 @@ import "@/src/styles/global.css";
   <body>
     <ChatApp
       client:load
-      user={{
-        id: "aFpBuN09e4wIjuyXS5opvZgXDIb3kiMf",
-        name: "Ana",
-        email: "ana@test.com",
-      }}
+      user={user}
     />
   </body>
 </html>

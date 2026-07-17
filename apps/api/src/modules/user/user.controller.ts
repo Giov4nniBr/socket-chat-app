@@ -1,13 +1,14 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { registerSchema, loginSchema } from "./user.schema.js";
 import { UserService } from "./user.service.js";
+import z from "zod"
 
 export const UserController = {
   register: async (req: FastifyRequest, res: FastifyReply) => {
     const parsed = registerSchema.safeParse(req.body);
 
     if (!parsed.success) {
-      return res.status(400).send({ error: parsed.error.flatten() });
+      return res.status(400).send({ error: z.treeifyError(parsed.error) });
     }
 
     try {
@@ -27,8 +28,9 @@ export const UserController = {
 
   login: async (req: FastifyRequest, res: FastifyReply) => {
     const parsed = loginSchema.safeParse(req.body);
+
     if (!parsed.success) {
-      return res.status(400).send({ error: parsed.error.flatten() });
+      return res.status(400).send({ error: z.treeifyError(parsed.error) });
     }
 
     try {

@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { sendRequest } from "./friend.schema.js";
 import { FriendService } from "./friend.service.js";
+import { sendRequest } from "./friend.schema.js";
 import z from "zod";
 
 export const FriendController = {

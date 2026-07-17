@@ -1,28 +1,25 @@
 import z from "zod";
 
-export const currentUserSchema = z.object({
-  id: z.cuid2(),
+export const userSchema = z.object({
+  id: z.string(),
   name: z.string().min(2).max(32),
   email: z.email(),
 });
 
-export const friendUserSchema = z.object({
-  id: z.cuid2(),
-  name: z.string().min(2).max(32),
-  email: z.email(),
-})
-
-export const friendRequestItem = z.object({
-  id: z.cuid2(),
+export const friendRequestSchema = z.object({
+  id: z.string(),
   createdAt: z.string(),
-  sender: friendUserSchema,
-})
+  sender: userSchema,
+});
 
 export const messageSchema = z.object({
-  id: z.cuid2(),
+  id: z.string(),
   senderId: z.string(),
   receiverId: z.string(),
   content: z.string(),
-  createdAt: z.string()
-})
+  createdAt: z.string(),
+});
 
+export type UserDTO = z.infer<typeof userSchema>;
+export type FriendRequestDTO = z.infer<typeof friendRequestSchema>;
+export type MessageDTO = z.infer<typeof messageSchema>;

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api";
+import { sendFriendRequest } from "@/lib/api/friends";
 
 export function AddFriend({ onSent }: { onSent?: () => void }) {
   const [email, setEmail] = useState("");
@@ -19,7 +19,7 @@ export function AddFriend({ onSent }: { onSent?: () => void }) {
     setFeedback(null);
 
     try {
-      await api.sendFriendRequest(email.trim());
+      await sendFriendRequest(email.trim())
       setFeedback({ type: "success", message: "Pedido enviado" });
       setEmail("");
       onSent?.();

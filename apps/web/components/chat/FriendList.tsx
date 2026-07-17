@@ -1,14 +1,14 @@
-import type { FriendUser } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import type { UserDTO } from "@/lib/chat.schema";
 
 export function FriendList({
   friends,
   selectedFriendId,
   onSelect,
 }: {
-  friends: FriendUser[];
+  friends: UserDTO[];
   selectedFriendId: string | null;
-  onSelect: (friend: FriendUser) => void;
+  onSelect: (friend: UserDTO) => void;
 }) {
   if (friends.length === 0) {
     return (
