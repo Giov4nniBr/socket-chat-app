@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { socket } from "@/lib/socket";
 import type { UserDTO } from "@/lib/chat.schema";
 import type { MessageDTO } from "@/lib/chat.schema";
@@ -15,6 +15,8 @@ import { Message as MessageRow } from "@/components/ui/message";
 import { Bubble, BubbleContent } from "@/components/ui/bubble";
 import { getMessageHistory } from "@/lib/api/messages";
 
+const LOAD_MORE_THRESHOLD_PX = 80
+
 export function ChatWindow({
   currentUserId,
   friend,
@@ -25,19 +27,29 @@ export function ChatWindow({
   const [messages, setMessages] = useState<MessageDTO[]>([]);
   const [content, setContent] = useState("");
   const [loadingHistory, setLoadingHistory] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
+
   const friendIdRef = useRef(friend.id);
   friendIdRef.current = friend.id;
 
+  const cursorRef = useRef<string | undefined>(undefined)
+
+  const isFetchingMoreRef = useRef(false)
   // carrega histórico sempre que troca de amigo
   useEffect(() => {
     let cancelled = false;
     setLoadingHistory(true);
+    cursorRef.current = undefined
 
     getMessageHistory(friend.id)
-      .then((history) => {
-        if (!cancelled) {
-          setMessages([...history].reverse());
-        }
+      .then(({items, hasMore: more}) => {
+        if (cancelled) return
+
+        const chronological = [...items].reverse()
+        setMessages(chronological)
+        setHasMore(more)
+        cursorRef.current = items.at(-1)?.id
       })
       .finally(() => {
         if (!cancelled) {
@@ -69,6 +81,36 @@ export function ChatWindow({
     };
   }, []);
 
+
+  const loadOlderMessages = async () => {
+    if (isFetchingMoreRef.current || !hasMore || !cursorRef.current) return
+
+    isFetchingMoreRef.current = true
+    setLoadingMore(true)
+
+    try {
+      const { items, hasMore: more} = await getMessageHistory(friend.id, cursorRef.current)
+
+      if (items.length > 0) {
+        const chronological = [...items].reverse()
+
+        setMessages((prev) => [...chronological, ...prev])
+        cursorRef.current = items.at(-1)?.id
+      }
+
+      setHasMore(more)
+    } finally {
+      isFetchingMoreRef.current = false
+      setLoadingMore(false)
+    }
+  }
+
+  const handleViewportScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    if (e.currentTarget.scrollTop <= LOAD_MORE_THRESHOLD_PX) {
+      void loadOlderMessages()
+    }
+  }
+
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
     if (!content.trim()) return;
@@ -90,16 +132,21 @@ export function ChatWindow({
 
       <MessageScrollerProvider autoScroll defaultScrollPosition="last-anchor">
         <MessageScroller className="flex-1">
-          <MessageScrollerViewport>
+          <MessageScrollerViewport onScroll={handleViewportScroll}>
             <MessageScrollerContent>
+              {loadingMore && (
+                <p className="p-3 text-sm text-muted-foreground">
+                  Carregando mensagens antigas...
+                </p>
+              )}
               {loadingHistory && (
                 <p className="p-3 text-sm text-muted-foreground">
-                  Carregando conversa...
+                  carregando conversa...
                 </p>
               )}
               {!loadingHistory && messages.length === 0 && (
                 <p className="p-3 text-sm text-muted-foreground">
-                  Nenhuma mensagem ainda. Diga oi!
+                  nenhuma mensagem ainda. diga oi
                 </p>
               )}
               {messages.map((msg) => {

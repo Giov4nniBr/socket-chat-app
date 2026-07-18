@@ -8,6 +8,7 @@ export async function requestClient<T>(path: string, options?: RequestInit): Pro
       ...(options?.body ? { "Content-Type": "application/json" } : {}),
       ...(options?.headers ?? {}),
     },
+    
   });
 
   if (!res.ok) {

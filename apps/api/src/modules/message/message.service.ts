@@ -26,7 +26,7 @@ export const MessageService = {
     currentUserId: string,
     friendId: string,
     cursor?: string,
-    limit?: number,
+    limit: number = 20,
   ) => {
     const isFriends = await FriendRepository.findFriendshipBetween(
       currentUserId,
@@ -37,13 +37,16 @@ export const MessageService = {
       throw AppError.unauthorized("you are not friends with this user");
     }
 
-    const history = await MessageRepository.listBetweenUsers(
+    const rows = await MessageRepository.listBetweenUsers(
       currentUserId,
       friendId,
       cursor,
       limit,
     );
 
-    return history;
+    const hasMore = rows.length > limit
+    const items = hasMore ? rows.slice(0, limit) : rows
+
+    return { items, hasMore}
   },
 };
