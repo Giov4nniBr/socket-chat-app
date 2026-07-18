@@ -1,20 +1,17 @@
 import { auth } from "../../lib/auth.js";
 import type { FastifyRequest, FastifyReply } from "fastify";
+import { AppError } from "../../shared/errors/AppError.js";
 
 export const UserMiddleware = {
   authenticate: async (req: FastifyRequest, res: FastifyReply) => {
-    try {
-      const session = await auth.api.getSession({
-        headers: req.headers as any,
-      });
+    const session = await auth.api.getSession({
+      headers: req.headers as any,
+    });
 
-      if (!session) {
-        return res.status(401).send({ error: "Unauthorized" });
-      }
-
-      (req as any).user = session.user;
-    } catch (error) {
-      return res.status(401).send({ error: "Authentication failed" });
+    if (!session) {
+      throw AppError.unauthorized("Unauthorized");
     }
+
+    req.user = session.user;
   },
 };

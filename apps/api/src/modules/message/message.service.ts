@@ -1,5 +1,6 @@
 import { FriendRepository } from "../friend/friend.repository.js";
 import { MessageRepository } from "./message.repository.js";
+import { AppError } from "../../shared/errors/AppError.js";
 
 export const MessageService = {
   send: async (senderId: string, receiverId: string, content: string) => {
@@ -9,7 +10,7 @@ export const MessageService = {
     );
 
     if (!isFriends) {
-      throw new Error("you are not friends with this user");
+      throw AppError.unauthorized("you are not friends with this user");
     }
 
     const message = await MessageRepository.create(
@@ -33,7 +34,7 @@ export const MessageService = {
     );
 
     if (!isFriends) {
-      throw new Error("you are not friends with this user");
+      throw AppError.unauthorized("you are not friends with this user");
     }
 
     const history = await MessageRepository.listBetweenUsers(

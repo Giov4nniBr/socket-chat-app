@@ -1,101 +1,57 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { FriendService } from "./friend.service.js";
 import { sendRequest } from "./friend.schema.js";
-import z from "zod";
+import { AppError } from "../../shared/errors/AppError.js";
+import { idParamsSchema } from "../../shared/utils/params.schema.js";
 
 export const FriendController = {
   sendRequest: async (req: FastifyRequest, res: FastifyReply) => {
     const parsed = sendRequest.safeParse(req.body);
 
     if (!parsed.success) {
-      return res.status(400).send({ error: z.treeifyError(parsed.error) });
+      throw AppError.badRequest("invalid request body");
     }
 
-    const senderId = (req as any).user.id;
+    const senderId = req.user.id;
 
-    try {
-      const result = await FriendService.sendRequest(
-        senderId,
-        parsed.data.receiverEmail,
-      );
-
-      return res.status(201).send(result);
-    } catch (error: any) {
-      const errorMessage = error.message; //
-
-      switch (errorMessage) {
-        case "user not found":
-          return res.status(404).send({ error: errorMessage });
-
-        case "the user cannot add themselves":
-          return res.status(400).send({ error: errorMessage });
-
-        case "you are already friends":
-        case "there is already a pending request":
-          return res.status(409).send({ error: errorMessage });
-
-        default:
-          return res.status(500).send({ error: "Internal server error" });
-      }
-    }
+    const result = await FriendService.sendRequest(
+      senderId,
+      parsed.data.receiverEmail,
+    );
+    return res.status(201).send(result);
   },
 
   acceptRequest: async (req: FastifyRequest, res: FastifyReply) => {
-    const { id } = req.params as { id: string };
+    const parsedParams = idParamsSchema.safeParse(req.params);
 
-    const currentUserId = (req as any).user.id;
-
-    try {
-      const result = await FriendService.acceptRequest(id, currentUserId);
-      return res.status(200).send(result);
-    } catch (error: any) {
-      const errorMessage = error.message;
-
-      if (errorMessage === "request not found") {
-        return res.status(404).send({ error: errorMessage });
-      }
-      if (
-        errorMessage === "you do not have permission to respond to this request"
-      ) {
-        return res.status(403).send({ error: errorMessage });
-      }
-      if (errorMessage.startsWith("request already")) {
-        return res.status(409).send({ error: errorMessage });
-      }
-
-      return res.status(500).send({ error: "Internal server error" });
+    if (!parsedParams.success) {
+      throw AppError.badRequest("invalid request id");
     }
+
+    const { id } = parsedParams.data;
+    const currentUserId = req.user.id;
+
+    const result = await FriendService.acceptRequest(id, currentUserId);
+
+    return res.status(200).send(result);
   },
 
   rejectRequest: async (req: FastifyRequest, res: FastifyReply) => {
-    const { id } = req.params as { id: string };
+    const parsedParams = idParamsSchema.safeParse(req.params);
 
+    if (!parsedParams.success) {
+      throw AppError.badRequest("invalid request id");
+    }
+
+    const { id } = parsedParams.data;
     const currentUserId = (req as any).user.id;
 
-    try {
-      const result = await FriendService.rejectRequest(id, currentUserId);
-      return res.status(200).send(result);
-    } catch (error: any) {
-      const errorMessage = error.message;
-
-      if (errorMessage === "request not found") {
-        return res.status(404).send({ error: errorMessage });
-      }
-      if (
-        errorMessage === "you do not have permission to respond to this request"
-      ) {
-        return res.status(403).send({ error: errorMessage });
-      }
-      if (errorMessage.startsWith("request already")) {
-        return res.status(409).send({ error: errorMessage });
-      }
-
-      return res.status(500).send({ error: "Internal server error" });
-    }
+    const result = await FriendService.rejectRequest(id, currentUserId);
+    return res.status(200).send(result);
   },
 
   listFriend: async (req: FastifyRequest, res: FastifyReply) => {
-    const userId = (req as any).user.id;
+    const userId = req.user.id;
 
     const result = await FriendService.listFriends(userId);
 
@@ -103,7 +59,7 @@ export const FriendController = {
   },
 
   listPendingRequest: async (req: FastifyRequest, res: FastifyReply) => {
-    const userId = (req as any).user.id;
+    const userId = req.user.id;
 
     const result = await FriendService.listPendingRequests(userId);
 

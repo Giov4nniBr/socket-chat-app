@@ -6,7 +6,7 @@ import { UserRoutes } from "./modules/user/user.routes.js";
 import { FriendRoutes } from "./modules/friend/friend.routes.js";
 import { setupSocket } from "./plugins/socket.js";
 import { MessageRoutes } from "./modules/message/message.routes.js";
-
+import { AppError } from "./shared/errors/AppError.js";
 
 app.register(fastifyCors, {
   origin: process.env.CLIENT_URL!,
@@ -16,6 +16,21 @@ app.register(fastifyCors, {
   maxAge: 86400,
 });
 
+app.setErrorHandler((error, request, reply) => {
+  if (error instanceof AppError) {
+    return reply.status(error.statusCode).send({
+      error: error.message,
+      code: error.code,
+    });
+  }
+
+  request.log.error(error);
+
+  return reply.status(500).send({
+    error: "Internal server error",
+    code: "INTERNAL_SERVER_ERROR",
+  });
+});
 
 app.route({
   method: ["GET", "POST"],
@@ -23,7 +38,7 @@ app.route({
   async handler(request, reply) {
     try {
       const url = new URL(request.url, `http://${request.headers.host}`);
-      
+
       const headers = fromNodeHeaders(request.headers);
       headers.delete("content-length");
       headers.delete("host");
@@ -39,6 +54,7 @@ app.route({
       reply.status(response.status);
       response.headers.forEach((value, key) => reply.header(key, value));
       return reply.send(response.body ? await response.text() : null);
+      // tratamento próprio, não usa AppError pra não vazar detalhes do handler do better-auth
     } catch (error) {
       return reply.status(500).send({
         error: "Internal authentication error",
@@ -48,13 +64,13 @@ app.route({
   },
 });
 
-app.register(UserRoutes)
-app.register(FriendRoutes)
-app.register(MessageRoutes)
+app.register(UserRoutes);
+app.register(FriendRoutes);
+app.register(MessageRoutes);
 
 setupSocket(app);
 
-const port = Number(process.env.PORT!)
+const port = Number(process.env.PORT!);
 
 app.listen({ port }, (err) => {
   if (err) {

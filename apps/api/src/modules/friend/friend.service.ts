@@ -1,5 +1,6 @@
 import { UserRepository } from "../user/user.repository.js";
 import { FriendRepository } from "./friend.repository.js";
+import { AppError } from "../../shared/errors/AppError.js";
 
 const getPendingRequestOrThrow = async (
   requestId: string,
@@ -7,12 +8,14 @@ const getPendingRequestOrThrow = async (
 ) => {
   const request = await FriendRepository.findRequestById(requestId);
 
-  if (!request) throw new Error("request not found");
+  if (!request) throw AppError.notFound("request not found");
   if (request.receiverId !== currentUserId) {
-    throw new Error("you do not have permission to respond to this request");
+    throw AppError.unauthorized(
+      "you do not have permission to respond to this request",
+    );
   }
   if (request.status !== "PENDING") {
-    throw new Error(`request already ${request.status.toLowerCase()}`);
+    throw AppError.conflict(`request already ${request.status.toLowerCase()}`);
   }
 
   return request;
@@ -23,19 +26,19 @@ export const FriendService = {
     const user = await UserRepository.search(receiverEmail);
 
     if (!user) {
-      throw new Error("user not found");
+      throw AppError.notFound("user not found");
     }
 
     if (senderId === user.id) {
-      throw new Error("the user cannot add themselves");
+      throw AppError.conflict("the user cannot add themselves");
     }
 
     if (await FriendRepository.findFriendshipBetween(senderId, user.id)) {
-      throw new Error("you are already friends");
+      throw AppError.conflict("you are already friends");
     }
 
     if (await FriendRepository.findPendingRequestBetween(senderId, user.id)) {
-      throw new Error("there is already a pending request");
+      throw AppError.badRequest("there is already a pending request");
     }
 
     return await FriendRepository.createFriendRequest(senderId, user.id);

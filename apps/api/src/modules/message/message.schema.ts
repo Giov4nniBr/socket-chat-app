@@ -7,7 +7,11 @@ export const createMessageSchema = z.object({
 
 export const messageHistorySchema = z.object({
   cursor: z.string().optional(),
-  limit: z.coerce.number().min(1).max(50).optional()
+  limit: z.coerce.number().min(1).max(50).optional(),
+});
+
+export const friendParamSchema = z.object({
+  friend: z.string().min(1),
 });
 
 export type createMessageDTO = z.infer<typeof createMessageSchema>;
