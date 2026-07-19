@@ -26,7 +26,8 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/chatdb
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-      BETTER_AUTH_URL: http://localhost:3333
+      # nome precisa bater com o que src/lib/auth.ts lê (process.env.BASE_URL)
+      BASE_URL: http://localhost:3333
       CLIENT_URL: http://localhost:4321
       PORT: 3333
     ports:
@@ -40,13 +41,21 @@ services:
     build:
       context: ./web
       dockerfile: Dockerfile
+      args:
+        # embutido no bundle do client em build time (Astro/Vite),
+        # precisa ser a URL que o NAVEGADOR do usuário vai acessar
+        PUBLIC_API_URL: http://localhost:3333
     container_name: chat-web
     restart: unless-stopped
     ports:
-      - "4321:4321" # Porta padrão do Astro, definida no seu CLIENT_URL
+      - "4321:4321"
     environment:
-      # Adicione aqui variáveis de ambiente que o Astro possa precisar no Docker 
-      PUBLIC_API_URL: http://localhost:3333
+      HOST: 0.0.0.0
+      PORT: 4321
+      # usado só em SSR (server-side), pra alcançar o container "api" pela
+      # rede interna do compose. Diferente de PUBLIC_API_URL (embutido no
+      # bundle do navegador em build time), esse é lido em runtime.
+      INTERNAL_API_URL: http://api:3333
     depends_on:
       - api
 

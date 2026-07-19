@@ -1,0 +1,10 @@
+node_modules
+dist
+src/generated
+.env
+.env.*
+*.log
+cookies_a.txt
+cookies_b.txt
+ana-socket.mjs
+bruno-socket.mjs

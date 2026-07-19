@@ -44,7 +44,7 @@ export const FriendController = {
     }
 
     const { id } = parsedParams.data;
-    const currentUserId = (req as any).user.id;
+    const currentUserId = req.user.id;
 
     const result = await FriendService.rejectRequest(id, currentUserId);
     return res.status(200).send(result);

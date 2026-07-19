@@ -10,7 +10,7 @@ export const MessageService = {
     );
 
     if (!isFriends) {
-      throw AppError.unauthorized("you are not friends with this user");
+      throw AppError.forbidden("you are not friends with this user");
     }
 
     const message = await MessageRepository.create(
@@ -34,7 +34,7 @@ export const MessageService = {
     );
 
     if (!isFriends) {
-      throw AppError.unauthorized("you are not friends with this user");
+      throw AppError.forbidden("you are not friends with this user");
     }
 
     const rows = await MessageRepository.listBetweenUsers(
@@ -44,9 +44,9 @@ export const MessageService = {
       limit,
     );
 
-    const hasMore = rows.length > limit
-    const items = hasMore ? rows.slice(0, limit) : rows
+    const hasMore = rows.length > limit;
+    const items = hasMore ? rows.slice(0, limit) : rows;
 
-    return { items, hasMore}
+    return { items, hasMore };
   },
 };

@@ -10,7 +10,7 @@ const getPendingRequestOrThrow = async (
 
   if (!request) throw AppError.notFound("request not found");
   if (request.receiverId !== currentUserId) {
-    throw AppError.unauthorized(
+    throw AppError.forbidden(
       "you do not have permission to respond to this request",
     );
   }
@@ -38,7 +38,7 @@ export const FriendService = {
     }
 
     if (await FriendRepository.findPendingRequestBetween(senderId, user.id)) {
-      throw AppError.badRequest("there is already a pending request");
+      throw AppError.conflict("there is already a pending request");
     }
 
     return await FriendRepository.createFriendRequest(senderId, user.id);
